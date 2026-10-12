@@ -1,6 +1,10 @@
+
+
+
 # Safe C: Cleaner 0.5.2
 
 Windows-утилита для анализа системного диска, безопасной очистки временных данных и контролируемых системных/Developer Storage операций.
+[**⬇ Скачать Safe C: Cleaner - последняя версия**](https://github.com/haknikpik-svg/Safe-C-Cleaner/releases/latest)
 
 ## Что нового в 0.5.2
 
