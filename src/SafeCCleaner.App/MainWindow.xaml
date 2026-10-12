@@ -1,0 +1,1066 @@
+<Window
+    x:Class="SafeCCleaner.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Safe C: Cleaner">
+
+    <NavigationView
+        x:Name="RootNavigation"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        PaneDisplayMode="Left"
+        OpenPaneLength="220"
+        CompactPaneLength="52"
+        IsPaneToggleButtonVisible="True"
+        SelectionChanged="Navigation_SelectionChanged"
+        ScrollViewer.VerticalScrollBarVisibility="Hidden">
+
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Обзор" Tag="overview" IsSelected="True">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE80F;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Быстрая очистка" Tag="quick">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE74D;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Глубокая очистка" Tag="deep">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE9D9;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Диск и рост" Tag="disk">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xEDA2;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Анализатор диска" Tag="analyzer">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE721;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Developer Storage" Tag="developer">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE943;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="История очисток" Tag="history">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE81C;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Безопасность" Tag="safety">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE72E;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem Content="Настройки" Tag="settings">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="О программе" Tag="about">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE946;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.FooterMenuItems>
+
+        <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- OVERVIEW -->
+            <ScrollViewer x:Name="OverviewPage" Grid.Row="0">
+                <StackPanel Margin="32,26,32,26" Spacing="18" MaxWidth="1050" HorizontalAlignment="Stretch">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Safe C: Cleaner" FontSize="30" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <Button x:Name="OverviewScanButton" Grid.Column="1" Content="{Binding ScanButtonText}" Click="Scan_Click"
+                                IsEnabled="{Binding CanStartScan}" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Border Padding="22" CornerRadius="14" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="28">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Диск C:" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DriveSummary}" Opacity="0.78" TextWrapping="Wrap" />
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding DriveUsedPercent}" Height="10" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" MinWidth="210" VerticalAlignment="Center">
+                                <TextBlock Text="Безопасно можно освободить" Opacity="0.68" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding SafeReclaimableText}" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="22" CornerRadius="14" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="5">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="Быстрая безопасная очистка" FontSize="20" FontWeight="SemiBold" />
+                                    <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Что входит в Быструю очистку" AutomationProperties.Name="Информация о Быстрой очистке">
+                                        <FontIcon Glyph="&#xE946;" FontSize="13"/>
+                                        <Button.Flyout><Flyout Placement="BottomEdgeAlignedLeft"><TextBlock Width="350" Text="SAFE-категории: временные файлы пользователя и Windows, кэши шейдеров, миниатюр и браузеров, а также старые отчёты об ошибках. Конкретный состав и описание каждой категории доступны в разделе «Быстрая очистка»." TextWrapping="Wrap"/></Flyout></Button.Flyout>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Очистить безопасное" Click="QuickCleanSafe_Click"
+                                    VerticalAlignment="Center" Style="{StaticResource AccentButtonStyle}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE73E;" FontSize="22" VerticalAlignment="Top" Margin="2,2,2,0" />
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Последняя операция" Opacity="0.62" FontSize="12" />
+                                <TextBlock Text="{Binding LastCleanupSummary}" FontSize="19" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding LastCleanupDetail}" Opacity="0.68" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Почему C: заполняется" FontWeight="SemiBold" FontSize="17" />
+                                <TextBlock Text="{Binding BiggestGrowthText}" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding BiggestGrowthDetail}" Opacity="0.68" TextWrapping="Wrap" />
+                                <Button Content="Открыть анализ" Click="NavigateToDisk_Click" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="5">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="Deep Clean" FontWeight="SemiBold" FontSize="17" />
+                                    <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="О системной очистке" AutomationProperties.Name="Информация о Deep Clean">
+                                        <FontIcon Glyph="&#xE946;" FontSize="13"/>
+                                        <Button.Flyout><Flyout Placement="BottomEdgeAlignedLeft"><TextBlock Width="350" Text="Системные операции требуют явного подтверждения и выполняются через UAC и штатные механизмы Windows; защищённые системные каталоги вручную не удаляются." TextWrapping="Wrap"/></Flyout></Button.Flyout>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding DeepPotentialText}" FontSize="22" FontWeight="SemiBold" />
+                                <Button Content="Открыть Deep Clean" Click="NavigateToDeep_Click" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <Border Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Последнее сканирование" Opacity="0.58" FontSize="11"/>
+                                <TextBlock Text="{Binding LastScanTimeText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding ScanResultSummary}" Opacity="0.68" FontSize="12"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding LastScanDurationText}" VerticalAlignment="Center" Opacity="0.72"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- QUICK CLEAN -->
+            <Grid x:Name="QuickCleanPage" Grid.Row="0" Visibility="Collapsed" Margin="28,20,28,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Margin="0,0,0,8" ColumnSpacing="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Быстрая очистка" FontSize="28" FontWeight="SemiBold" />
+                        <Button Style="{StaticResource InfoIconButtonStyle}"
+                                ToolTipService.ToolTip="Что удаляет Быстрая очистка"
+                                AutomationProperties.Name="Информация о Быстрой очистке">
+                            <FontIcon Glyph="&#xE946;" FontSize="14" />
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="360" Spacing="7">
+                                        <TextBlock Text="Быстрая очистка" FontWeight="SemiBold" FontSize="16" />
+                                        <TextBlock Text="SAFE-категории содержат пересоздаваемые временные данные и могут очищаться без дополнительного подтверждения. ADVANCED-категории требуют явного подтверждения." TextWrapping="Wrap" />
+                                        <TextBlock Text="Корзина, дампы приложений и системные BSOD-дампы не выбираются автоматически." Opacity="0.7" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <RadioButton Content="Все" Tag="all" GroupName="CleanupFilter" IsChecked="True" Checked="CleanupFilter_Checked" />
+                        <RadioButton Content="SAFE" Tag="safe" GroupName="CleanupFilter" Checked="CleanupFilter_Checked" />
+                        <RadioButton Content="ADVANCED" Tag="advanced" GroupName="CleanupFilter" Checked="CleanupFilter_Checked" />
+                    </StackPanel>
+                </Grid>
+                <ListView Grid.Row="1" ItemsSource="{Binding VisibleCleanupItems}" SelectionMode="None"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="MinHeight" Value="0" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,5" Padding="12,7" CornerRadius="10" MinHeight="52"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,2,0" />
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <Button Style="{StaticResource InfoIconButtonStyle}" Width="24" Height="24" MinWidth="24" MinHeight="24"
+                                                ToolTipService.ToolTip="{Binding Description}"
+                                                AutomationProperties.Name="Описание категории очистки">
+                                            <FontIcon Glyph="&#xE946;" FontSize="12" />
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                                    <StackPanel Width="360" Spacing="7">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="16" />
+                                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                                            <TextBlock Text="Режим:" Opacity="0.68" />
+                                                            <TextBlock Text="{Binding RiskText}" Opacity="0.68" />
+                                                            <TextBlock Text="{Binding ElevationText}" Opacity="0.68" />
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Spacing="6" Visibility="{Binding WarningVisibility}">
+                                                            <FontIcon Glyph="&#xE7BA;" FontSize="12" VerticalAlignment="Top" Margin="0,2,0,0" />
+                                                            <TextBlock Text="{Binding Warning}" Opacity="0.76" FontStyle="Italic" TextWrapping="Wrap" MaxWidth="330" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <TextBlock Text="{Binding RiskText}" Opacity="0.56" FontSize="11" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding ElevationText}" Visibility="{Binding ElevationVisibility}"
+                                                   Opacity="0.56" FontSize="11" VerticalAlignment="Center" />
+                                        <FontIcon Glyph="&#xE7BA;" FontSize="11" Opacity="0.62"
+                                                  Visibility="{Binding WarningVisibility}"
+                                                  ToolTipService.ToolTip="{Binding Warning}" VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" MinWidth="94">
+                                        <TextBlock Text="{Binding SizeText}" FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right" />
+                                        <TextBlock Text="{Binding FileCountText}" Opacity="0.56" FontSize="11" HorizontalAlignment="Right" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="3" Content="Очистить" Click="CleanSingle_Click" DataContext="{Binding}"
+                                            IsEnabled="{Binding CanClean}" MinWidth="86" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Border Grid.Row="2" Margin="0,8,0,0" Padding="12,9" CornerRadius="10"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding SelectedCleanupSummary}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding SelectedCleanupSizeText}" Opacity="0.68" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Content="Очистить выбранное" Click="CleanSelected_Click"
+                                IsEnabled="{Binding CanCleanSelected}" Style="{StaticResource AccentButtonStyle}" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- DEEP CLEAN -->
+            <ScrollViewer x:Name="DeepCleanPage" Grid.Row="0" Visibility="Collapsed">
+                <StackPanel Margin="32,26,32,28" Spacing="14" MaxWidth="1050" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Глубокая очистка" FontSize="28" FontWeight="SemiBold" />
+                        <Button Style="{StaticResource InfoIconButtonStyle}"
+                                ToolTipService.ToolTip="Что делает Глубокая очистка"
+                                AutomationProperties.Name="Информация о Глубокой очистке">
+                            <FontIcon Glyph="&#xE946;" FontSize="14" />
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="380" Spacing="7">
+                                        <TextBlock Text="Глубокая очистка" FontWeight="SemiBold" FontSize="16" />
+                                        <TextBlock Text="Системные операции выполняются через UAC и штатные механизмы Windows. Приложение не удаляет WinSxS или SoftwareDistribution вручную и не использует DISM /ResetBase." TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Старые компоненты Windows" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="DISM /AnalyzeComponentStore → /StartComponentCleanup. /ResetBase никогда не используется."
+                                           Opacity="0.68" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding ComponentStoreStatusText}" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding ComponentStoreDetailsText}" Margin="0,4,0,0" Opacity="0.62"
+                                           FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Content="Анализировать" Click="AnalyzeComponentStore_Click" />
+                                <Button Content="Очистить" Click="CleanupComponentStore_Click" IsEnabled="{Binding ComponentCleanupEnabled}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Windows Update Cleanup" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock Text="SAFE · UAC" FontSize="12" Opacity="0.58" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="Удаляет устаревшие файлы обновлений только через встроенную категорию Windows Disk Cleanup."
+                                           Opacity="0.68" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding WindowsUpdateCleanupStatusText}" Margin="0,5,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Очистить обновления" Click="CleanWindowsUpdate_Click" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Предыдущая установка Windows" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding WindowsOldSizeText}" FontSize="20" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding WindowsOldStatusText}" Opacity="0.68" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Удалить остатки обновления" Click="CleanWindowsOld_Click"
+                                    IsEnabled="{Binding WindowsOldAvailable}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Delivery Optimization" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DeliveryOptimizationSizeText}" FontSize="20" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DeliveryOptimizationStatusText}" Opacity="0.68" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Очистить кэш" Click="CleanDeliveryOptimization_Click" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Файл гибернации" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock Text="ADVANCED" FontSize="12" Opacity="0.58" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding HiberfileSizeText}" FontSize="20" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding HibernationStatusText}" Opacity="0.68" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Content="Отключить" Click="DisableHibernate_Click" IsEnabled="{Binding HibernationEnabled}" />
+                                <Button Content="Включить обратно" Click="EnableHibernate_Click" IsEnabled="{Binding HibernationRestoreEnabled}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="16" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <TextBlock Text="Важно: Safe C: Cleaner не удаляет WinSxS/SoftwareDistribution вручную, не использует DISM /ResetBase и не трогает точки восстановления без отдельного будущего Expert Mode."
+                                   TextWrapping="Wrap" Opacity="0.72" />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- DISK / STORAGE INTELLIGENCE -->
+            <Grid x:Name="DiskPage" Grid.Row="0" Visibility="Collapsed">
+                <ScrollViewer>
+                    <StackPanel Margin="24,20,24,20" Spacing="12">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="Storage Intelligence" FontSize="28" FontWeight="SemiBold" />
+                                <Button Style="{StaticResource InfoIconButtonStyle}"
+                                        ToolTipService.ToolTip="Что показывает Storage Intelligence"
+                                        AutomationProperties.Name="Информация о Storage Intelligence">
+                                    <FontIcon Glyph="&#xE946;" FontSize="14" />
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                            <StackPanel Width="380" Spacing="7">
+                                                <TextBlock Text="Storage Intelligence" FontWeight="SemiBold" FontSize="16" />
+                                                <TextBlock Text="Сохраняет снимки занятого места на C:, сравнивает их между собой и показывает, какие отслеживаемые зоны выросли. Этот раздел ничего не удаляет." TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Content="{Binding RescanButtonText}" Click="Scan_Click" IsEnabled="{Binding CanStartScan}" />
+                                <Button Content="Отмена" Click="CancelScan_Click" IsEnabled="{Binding IsScanning}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding DriveUsedPercent}" Height="10" />
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel><TextBlock Text="ЗАНЯТО" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding DriveUsedText}" FontSize="22" FontWeight="SemiBold"/></StackPanel>
+                                    <StackPanel Grid.Column="1"><TextBlock Text="СВОБОДНО" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding DriveFreeText}" FontSize="22" FontWeight="SemiBold"/></StackPanel>
+                                    <StackPanel Grid.Column="2"><TextBlock Text="ВСЕГО" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding DriveTotalText}" FontSize="22" FontWeight="SemiBold"/></StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"><StackPanel Spacing="3"><TextBlock Text="1 ДЕНЬ" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding Trend1DayText}" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="{Binding Trend1DayDetail}" Opacity="0.64" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Grid.Column="1" Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"><StackPanel Spacing="3"><TextBlock Text="7 ДНЕЙ" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding Trend7DayText}" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="{Binding Trend7DayDetail}" Opacity="0.64" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
+                            <Border Grid.Column="2" Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"><StackPanel Spacing="3"><TextBlock Text="30 ДНЕЙ" Opacity="0.55" FontSize="11"/><TextBlock Text="{Binding Trend30DayText}" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="{Binding Trend30DayDetail}" Opacity="0.64" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
+                        </Grid>
+
+                        <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="ПОЧЕМУ C: ИЗМЕНИЛСЯ" Opacity="0.55" FontSize="11"/>
+                                <TextBlock Text="{Binding StorageInsightSummary}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding StorageBaselineText}" Opacity="0.62" FontSize="12" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Что выросло" FontSize="20" FontWeight="SemiBold"/>
+                                                        <ItemsControl ItemsSource="{Binding StorageGrowthItems}">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Margin="0,0,0,8" Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Path}" Opacity="0.55" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding PeriodText}" Opacity="0.48" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DeltaText}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding SizeText}" Opacity="0.55" FontSize="11" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="Разобрать" Tag="{Binding Path}" Click="AnalyzeFolder_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Отслеживаемые зоны" FontSize="20" FontWeight="SemiBold"/>
+                            <ItemsControl ItemsSource="{Binding FolderItems}">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Margin="0,0,0,8" Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="120"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/><TextBlock Text="{Binding Path}" Opacity="0.58" FontSize="12" TextTrimming="CharacterEllipsis"/></StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding GrowthText}" Opacity="0.76" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="3" Content="Разобрать" Tag="{Binding Path}" Click="AnalyzeFolder_Click" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="4" Content="Открыть" Tag="{Binding Path}" IsEnabled="{Binding CanOpenLocation}" Click="OpenFolder_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <Border Padding="16" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Button Content="←" Click="StorageBack_Click" IsEnabled="{Binding CanNavigateStorageBack}" MinWidth="38" Padding="8,4"/>
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="{Binding DrilldownTitle}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding DrilldownStatus}" Opacity="0.62" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="Исключения" Click="StorageExclusions_Click" Padding="10,5"/>
+                                    <Button Grid.Column="3" Content="Обновить" Click="StorageRefreshFolder_Click" Padding="10,5"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding StorageBreadcrumbs}">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate><DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,6,0">
+                                            <Button Content="{Binding Name}" Tag="{Binding Path}" Click="StorageBreadcrumb_Click" Padding="6,2" FontSize="11"/>
+                                            <TextBlock Text="›" Opacity="0.42" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="150"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions>
+                                    <TextBox PlaceholderText="Поиск по имени или пути" TextChanged="StorageSearch_TextChanged"/>
+                                    <ComboBox Grid.Column="1" SelectedIndex="0" SelectionChanged="StorageFilter_SelectionChanged" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="Любой размер" Tag="all"/>
+                                        <ComboBoxItem Content="от 100 MB" Tag="100m"/>
+                                        <ComboBoxItem Content="от 1 GB" Tag="1g"/>
+                                        <ComboBoxItem Content="от 5 GB" Tag="5g"/>
+                                    </ComboBox>
+                                    <ComboBox Grid.Column="2" SelectedIndex="0" SelectionChanged="StorageSort_SelectionChanged" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="По размеру" Tag="size"/>
+                                        <ComboBoxItem Content="По имени" Tag="name"/>
+                                        <ComboBoxItem Content="По файлам" Tag="files"/>
+                                        <ComboBoxItem Content="Сначала папки" Tag="folders"/>
+                                    </ComboBox>
+                                </Grid>
+
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding DrilldownProgressPercent}" Height="6" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DrilldownAccessText}" Opacity="0.55" FontSize="11" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding DrilldownItems}">
+                                    <ItemsControl.ItemTemplate><DataTemplate>
+                                        <Border Margin="0,0,0,5" Padding="10" CornerRadius="8" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                            <Grid ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="180"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Path}" Opacity="0.50" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding DetailText}" Opacity="0.58" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                <Button Grid.Column="3" Content="Открыть" Tag="{Binding Path}" Click="OpenFolder_Click" IsEnabled="{Binding IsDirectory}" Padding="9,4"/>
+                                                <Button Grid.Column="4" Content="Глубже" Tag="{Binding Path}" Click="AnalyzeFolder_Click" IsEnabled="{Binding IsDirectory}" Padding="9,4"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- CLEANUP HISTORY -->
+            <Grid x:Name="HistoryPage" Grid.Row="0" Visibility="Collapsed" Margin="28,24,28,20">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Grid Margin="0,0,0,16" ColumnSpacing="16">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="История очисток" FontSize="28" FontWeight="SemiBold"/>
+                        <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Как хранится история очисток" AutomationProperties.Name="Информация об истории очисток">
+                            <FontIcon Glyph="&#xE946;" FontSize="14"/>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="360" Spacing="7">
+                                        <TextBlock Text="История очисток" FontWeight="SemiBold" FontSize="16"/>
+                                        <TextBlock Text="Хранятся только 10 последних операций. Для каждой сохраняются дата, результат, фактическое изменение свободного места и данные по категориям. Более старые записи автоматически удаляются из локальной базы." TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button Content="Обновить" Click="RefreshHistory_Click"/><Button Content="TXT" Click="ExportHistory_Click"/><Button Content="JSON" Click="ExportHistoryJson_Click"/></StackPanel>
+                </Grid>
+                <ListView Grid.Row="1" ItemsSource="{Binding CleanupHistoryItems}" SelectionMode="None">
+                    <ListView.ItemTemplate><DataTemplate>
+                        <Border Margin="0,0,0,9" Padding="16" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="{Binding ModeText}" Opacity="0.58" FontSize="12" VerticalAlignment="Center"/><TextBlock Text="{Binding ResultText}" Opacity="0.58" FontSize="12" VerticalAlignment="Center"/></StackPanel>
+                                    <TextBlock Text="{Binding DateText}" Opacity="0.58" FontSize="12"/><TextBlock Text="{Binding DetailText}" Opacity="0.7" TextWrapping="Wrap"/>
+                                    <Button Content="Подробнее" Tag="{Binding Id}" Click="HistoryDetails_Click" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"><TextBlock Text="{Binding FreedText}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Right"/><TextBlock Text="изменение свободного места" Opacity="0.55" FontSize="11" HorizontalAlignment="Right"/><TextBlock Text="{Binding ItemCountText}" Opacity="0.58" FontSize="12" HorizontalAlignment="Right" Margin="0,4,0,0"/></StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate></ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <!-- SAFETY -->
+            <ScrollViewer x:Name="SafetyPage" Grid.Row="0" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="32,26,32,28" Spacing="14" MaxWidth="980" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Безопасность" FontSize="28" FontWeight="SemiBold" />
+                        <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Как Safe C: Cleaner защищает данные" AutomationProperties.Name="Информация о безопасности">
+                            <FontIcon Glyph="&#xE946;" FontSize="14" />
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Width="400" Spacing="7">
+                                        <TextBlock Text="Безопасность" FontWeight="SemiBold" FontSize="16" />
+                                        <TextBlock Text="Раздел объясняет ограничения очистителя: какие пути защищены, какие операции разрешены elevated-helper и почему системная очистка выполняется штатными механизмами Windows." TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Защита удаления" FontSize="19" FontWeight="SemiBold" />
+                            <Grid ColumnSpacing="14" RowSpacing="8">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="PathGuard" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Отказывает в очистке корня диска, подозрительно коротких путей, reparse-root и защищённых системных областей." TextWrapping="Wrap" Opacity="0.76"/>
+                                <TextBlock Grid.Row="1" Text="Whitelist" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="UAC helper принимает только заранее разрешённые cleanup-rule и system-operation ID; произвольную команду передать нельзя." TextWrapping="Wrap" Opacity="0.76"/>
+                                <TextBlock Grid.Row="2" Text="Elevated helper" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="Повышенные права выдаются отдельному helper-процессу только на конкретную подтверждённую операцию." TextWrapping="Wrap" Opacity="0.76"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Защищённые области" FontSize="19" FontWeight="SemiBold" />
+                            <TextBlock Text="Напрямую блокируются корень диска, профиль пользователя, Рабочий стол, Документы, Загрузки, Windows, ProgramData, Program Files, System32, WinSxS и Windows Installer. Анализатор диска эти ограничения не превращает в разрешение на удаление." TextWrapping="Wrap" Opacity="0.76" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Когда нужен UAC" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="Windows Temp, системные WER/дампы и системные операции вроде DISM, Windows Update Cleanup, Delivery Optimization и управления гибернацией выполняются через отдельное подтверждение Windows." TextWrapping="Wrap" Opacity="0.76" />
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Чего здесь нет" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="Нет Registry Cleaner, RAM booster, дефрагментации и автоматического удаления объектов, найденных Storage Analyzer. Docker volumes и WSL-дистрибутивы также не удаляются автоматически." TextWrapping="Wrap" Opacity="0.76" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Padding="14" CornerRadius="10" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE73E;" FontSize="18"/>
+                            <TextBlock Text="Safe C: Cleaner 0.5.2 · очистка выполняется только через известные правила или штатные системные механизмы." TextWrapping="Wrap" Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- STORAGE ANALYZER -->
+            <ScrollViewer x:Name="AnalyzerPage" Grid.Row="0" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="32,26,32,28" Spacing="14" MaxWidth="1120" HorizontalAlignment="Center">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Анализатор диска" FontSize="28" FontWeight="SemiBold"/>
+                            <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Что делает Storage Analyzer" AutomationProperties.Name="Информация об анализаторе диска">
+                                <FontIcon Glyph="&#xE946;" FontSize="14"/>
+                                <Button.Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft">
+                                        <StackPanel Width="390" Spacing="7">
+                                            <TextBlock Text="Анализатор диска" FontWeight="SemiBold" FontSize="16"/>
+                                            <TextBlock Text="Ищет крупные файлы и папки на системном диске в режиме только чтения. Ничего не удаляет. Последний успешный результат сохраняется локально и показывается после следующего запуска приложения." TextWrapping="Wrap"/>
+                                            <TextBlock Text="Reparse points и пути из списка исключений Storage Scanner пропускаются." Opacity="0.7" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Content="{Binding AnalyzerScanButtonText}" Click="AnalyzeStorage_Click" IsEnabled="{Binding CanStartAnalyzer}"/>
+                            <Button Content="Отмена" Click="CancelAnalyzer_Click" IsEnabled="{Binding IsAnalyzerScanning}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Padding="16" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding AnalyzerSummaryText}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding AnalyzerLastRunText}" Opacity="0.56" FontSize="11" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding AnalyzerStatusText}" Opacity="0.65" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="{Binding AnalyzerProgressText}" Opacity="0.72" VerticalAlignment="Center"/>
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding AnalyzerProgressPercent}" Height="8"
+                                         Visibility="{Binding AnalyzerProgressVisibility}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="8" RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="AnalyzerCategoryCombo" MinWidth="180" HorizontalAlignment="Stretch" SelectionChanged="AnalyzerFilter_Changed" SelectedIndex="0">
+                                <ComboBoxItem Content="Все типы" Tag="all"/>
+                                <ComboBoxItem Content="Документы" Tag="Документы"/>
+                                <ComboBoxItem Content="Видео" Tag="Видео"/>
+                                <ComboBoxItem Content="Изображения" Tag="Изображения"/>
+                                <ComboBoxItem Content="Музыка" Tag="Музыка"/>
+                                <ComboBoxItem Content="Архивы" Tag="Архивы"/>
+                                <ComboBoxItem Content="Образы дисков" Tag="Образы дисков"/>
+                                <ComboBoxItem Content="Исполняемые файлы" Tag="Исполняемые файлы"/>
+                                <ComboBoxItem Content="Прочее" Tag="Прочее"/>
+                            </ComboBox>
+                            <ComboBox x:Name="AnalyzerMinSizeCombo" Grid.Column="1" MinWidth="120" SelectionChanged="AnalyzerFilter_Changed" SelectedIndex="0">
+                                <ComboBoxItem Content="Любой размер" Tag="0"/>
+                                <ComboBoxItem Content="> 500 MB" Tag="524288000"/>
+                                <ComboBoxItem Content="> 1 GB" Tag="1073741824"/>
+                                <ComboBoxItem Content="> 5 GB" Tag="5368709120"/>
+                                <ComboBoxItem Content="> 10 GB" Tag="10737418240"/>
+                            </ComboBox>
+                            <ComboBox x:Name="AnalyzerAgeCombo" Grid.Column="2" MinWidth="130" SelectionChanged="AnalyzerFilter_Changed" SelectedIndex="0">
+                                <ComboBoxItem Content="Любой возраст" Tag="0"/>
+                                <ComboBoxItem Content="> 180 дней" Tag="180"/>
+                                <ComboBoxItem Content="> 1 года" Tag="365"/>
+                            </ComboBox>
+                            <ComboBox x:Name="AnalyzerSortCombo" Grid.Column="3" MinWidth="110" SelectionChanged="AnalyzerFilter_Changed" SelectedIndex="0">
+                                <ComboBoxItem Content="По размеру" Tag="size"/>
+                                <ComboBoxItem Content="По дате" Tag="date"/>
+                                <ComboBoxItem Content="По имени" Tag="name"/>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Самые большие файлы" FontSize="19" FontWeight="SemiBold"/>
+                                <ListView ItemsSource="{Binding AnalyzerFileItems}" Height="410" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                                    <ListView.ItemTemplate><DataTemplate>
+                                        <Grid Padding="4,7" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel MinWidth="0">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Path}" Opacity="0.5" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Category}" Opacity="0.58" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding SizeText}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding ModifiedText}" Opacity="0.55" FontSize="11" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="Открыть" Tag="{Binding Path}" Click="OpenAnalyzerItem_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate></ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Самые большие папки" FontSize="19" FontWeight="SemiBold"/>
+                                <ListView ItemsSource="{Binding AnalyzerFolderItems}" Height="410" HorizontalContentAlignment="Stretch" SelectionMode="None">
+                                    <ListView.ItemTemplate><DataTemplate>
+                                        <Grid Padding="4,7" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel MinWidth="0">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Path}" Opacity="0.5" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding AccessText}" Opacity="0.58" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding SizeText}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding ModifiedText}" Opacity="0.55" FontSize="11" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="Разобрать" Tag="{Binding Path}" Click="AnalyzeAnalyzerFolder_Click" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="3" Content="Открыть" Tag="{Binding Path}" Click="OpenAnalyzerItem_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate></ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- DEVELOPER STORAGE -->
+            <ScrollViewer x:Name="DeveloperPage" Grid.Row="0" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                <StackPanel Margin="32,26,32,28" Spacing="14" MaxWidth="1050" HorizontalAlignment="Center">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="Developer Storage" FontSize="28" FontWeight="SemiBold"/>
+                            <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Что входит в Developer Storage" AutomationProperties.Name="Информация о Developer Storage">
+                                <FontIcon Glyph="&#xE946;" FontSize="14"/>
+                                <Button.Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft">
+                                        <StackPanel Width="390" Spacing="7">
+                                            <TextBlock Text="Developer Storage" FontWeight="SemiBold" FontSize="16"/>
+                                            <TextBlock Text="Показывает место, занятое Docker, WSL, npm, NuGet и Android SDK. Очистка выполняется только штатными командами соответствующих инструментов." TextWrapping="Wrap"/>
+                                            <TextBlock Text="Docker volumes и WSL-дистрибутивы автоматически не удаляются." Opacity="0.7" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Обновить" Click="RefreshDeveloperStorage_Click" IsEnabled="{Binding CanUseDeveloperStorage}" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Docker" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding DockerStorageText}" Opacity="0.72" TextWrapping="Wrap"/>
+                                <TextBlock Text="Volumes никогда не очищаются этой версией." Opacity="0.55" FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <Button Content="Build cache" Click="DockerBuildCache_Click" IsEnabled="{Binding CanCleanDocker}"/>
+                                <Button Content="Dangling images" Click="DockerImages_Click" IsEnabled="{Binding CanCleanDocker}"/>
+                                <Button Content="Stopped containers" Click="DockerContainers_Click" IsEnabled="{Binding CanCleanDocker}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="WSL" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding WslStorageText}" Opacity="0.72" TextWrapping="Wrap"/>
+                                <TextBlock Text="Только анализ VHDX. Дистрибутивы и их данные не удаляются." Opacity="0.55" FontSize="12"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Открыть настройки WSL" Click="OpenWslSettings_Click" IsEnabled="{Binding WslAvailable}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="npm cache" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding NpmStorageText}" Opacity="0.72" TextWrapping="Wrap"/>
+                                <Button Content="Очистить npm cache" Click="NpmCache_Click" IsEnabled="{Binding CanCleanNpm}" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="NuGet cache" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding NuGetStorageText}" Opacity="0.72" TextWrapping="Wrap"/>
+                                <Button Content="Очистить NuGet caches" Click="NuGetCache_Click" IsEnabled="{Binding CanCleanNuGet}" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="7">
+                                <TextBlock Text="Android SDK" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding AndroidStorageText}" Opacity="0.72" TextWrapping="Wrap"/>
+                                <TextBlock Text="Пакеты удаляются только по явному выбору через штатный sdkmanager." Opacity="0.55" FontSize="12" TextWrapping="Wrap"/>
+                                <ComboBox x:Name="AndroidPackageCombo" ItemsSource="{Binding AndroidSdkPackageItems}" PlaceholderText="Выберите установленный SDK-пакет" MinWidth="420" MaxWidth="680" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center">
+                                <Button Content="Открыть SDK" Click="OpenAndroidSdk_Click" IsEnabled="{Binding AndroidAvailable}"/>
+                                <Button Content="Удалить выбранный пакет" Click="UninstallAndroidPackage_Click" IsEnabled="{Binding CanManageAndroid}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="14" CornerRadius="10" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid ColumnSpacing="14"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding DeveloperStorageStatus}" TextWrapping="Wrap" Opacity="0.72" VerticalAlignment="Center"/>
+                            <ProgressRing Grid.Column="1" IsActive="{Binding IsDeveloperBusy}" Width="22" Height="22"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- SETTINGS -->
+            <ScrollViewer x:Name="SettingsPage" Grid.Row="0" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                <StackPanel Margin="32,26,32,28" Spacing="14" MaxWidth="940" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Настройки" FontSize="28" FontWeight="SemiBold" />
+                        <Button Style="{StaticResource InfoIconButtonStyle}" ToolTipService.ToolTip="Настройки Safe C: Cleaner" AutomationProperties.Name="Информация о настройках">
+                            <FontIcon Glyph="&#xE946;" FontSize="14" />
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <TextBlock Width="360" Text="Здесь настраиваются автосканирование, кэш Storage Scanner, автозапуск Windows, поведение системного трея, исключения и сохранение состояния интерфейса." TextWrapping="Wrap" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnSpacing="20">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Сканировать при запуске" FontSize="17" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Автоматически обновлять состояние диска после старта." Opacity="0.65"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="AutoScanToggle" Grid.Column="1" Toggled="AutoScanToggle_Toggled" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnSpacing="20">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Кэш Storage Scanner" FontSize="17" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Повторный анализ каталога использует свежий результат из памяти." Opacity="0.65"/>
+                                </StackPanel>
+                                <ComboBox x:Name="ScannerCacheCombo" Grid.Column="1" Width="140" SelectionChanged="ScannerCacheCombo_SelectionChanged">
+                                    <ComboBoxItem Content="5 минут" Tag="5"/>
+                                    <ComboBoxItem Content="15 минут" Tag="15"/>
+                                    <ComboBoxItem Content="30 минут" Tag="30"/>
+                                    <ComboBoxItem Content="60 минут" Tag="60"/>
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="Интеграция с Windows" FontSize="18" FontWeight="SemiBold"/>
+                            <Grid ColumnSpacing="20">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Запускать вместе с Windows" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Стартует в фоне и остаётся в системном трее." Opacity="0.65"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="AutostartToggle" Grid.Column="1" Toggled="AutostartToggle_Toggled" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnSpacing="20">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Закрывать в системный трей" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Крестик скрывает окно; полностью выйти можно из меню значка в трее." Opacity="0.65" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="MinimizeToTrayToggle" Grid.Column="1" Toggled="MinimizeToTrayToggle_Toggled" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Исключения Storage Scanner" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Эти пути не анализируются. Очистка приложения от этого списка не зависит." Opacity="0.65" TextWrapping="Wrap"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBox x:Name="SettingsExclusionPathBox" PlaceholderText="C:\путь\к\папке"/>
+                                <Button Grid.Column="1" Content="Добавить" Click="AddStorageExclusion_Click"/>
+                            </Grid>
+                            <ListView x:Name="SettingsExclusionsList" ItemsSource="{Binding StorageExclusionItems}" MaxHeight="190" SelectionMode="Single"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Удалить выбранное" Click="RemoveStorageExclusion_Click"/>
+                                <Button Content="Очистить список" Click="ClearStorageExclusions_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Интерфейс" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Размер и положение окна, состояние боковой панели и последний раздел сохраняются при закрытии." Opacity="0.65" TextWrapping="Wrap"/>
+                            <Button Content="Сбросить настройки" Click="ResetSettings_Click" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="SettingsStatusText" Opacity="0.7"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ABOUT -->
+            <ScrollViewer x:Name="AboutPage" Grid.Row="0" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                <StackPanel Margin="32,26,32,28" Spacing="16" MaxWidth="940" HorizontalAlignment="Center">
+                    <TextBlock Text="О программе" FontSize="28" FontWeight="SemiBold" />
+
+                    <Border Padding="0" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+                            <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Версия программы"/><TextBlock Grid.Column="1" Text="{Binding AboutVersionText}" FontWeight="SemiBold"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="1" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Об устройстве"/><TextBlock Grid.Column="1" Text="{Binding AboutDeviceText}" TextWrapping="Wrap"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="2" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Имя устройства"/><TextBlock Grid.Column="1" Text="{Binding AboutMachineName}"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="3" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Архитектура / CPU"/><TextBlock Grid.Column="1" Text="{Binding AboutHardwareText}"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="4" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text=".NET"/><TextBlock Grid.Column="1" Text="{Binding AboutDotNetText}"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="5" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Windows App SDK"/><TextBlock Grid.Column="1" Text="{Binding AboutWindowsAppSdkText}"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Row="6" Grid.ColumnSpan="2" Padding="14,11">
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Автор"/><TextBlock Grid.Column="1" Text="Cactus Dex" FontWeight="SemiBold"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="24" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel HorizontalAlignment="Center" Spacing="10">
+                            <Image Source="Assets/SafeCCleanerLogo.png" Width="104" Height="104" Stretch="Uniform" Margin="0,0,0,2"/>
+                            <TextBlock Text="Safe C: Cleaner" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Безопасный анализ и очистка системного диска Windows." Opacity="0.68" HorizontalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                <Button Content="Открыть папку логов" Click="OpenLogsFolder_Click"/>
+                                <Button Content="Скопировать сведения" Click="CopyDiagnostics_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="1" Margin="20,6,20,14" Padding="12,9" CornerRadius="8"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="260" />
+                        <ColumnDefinition Width="1.25*" MinWidth="220" />
+                        <ColumnDefinition Width="132" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding ScanProgressPercent}"
+                                 Visibility="{Binding ScanProgressVisibility}" Height="8" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding ScanEtaText}" Visibility="{Binding ScanProgressVisibility}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.72" TextTrimming="None" />
+                    <Button Grid.Column="3" Content="Отмена" Click="CancelScan_Click" IsEnabled="{Binding IsScanning}"
+                            Visibility="{Binding ScanProgressVisibility}" Padding="10,4" />
+                </Grid>
+            </Border>
+        </Grid>
+    </NavigationView>
+</Window>

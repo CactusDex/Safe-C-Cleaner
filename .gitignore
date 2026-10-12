@@ -1,0 +1,29 @@
+bin/
+obj/
+.vs/
+artifacts/
+*.user
+*.suo
+*.db
+# Local secrets and configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pfx
+*.p12
+*.pem
+*.key
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.log
+# Local settings
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+.idea/
+# Temporary files
+*.tmp
+*.bak

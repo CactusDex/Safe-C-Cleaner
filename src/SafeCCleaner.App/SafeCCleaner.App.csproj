@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>SafeCCleaner.App</RootNamespace>
+    <AssemblyName>SafeCCleaner</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <UseWinUI>true</UseWinUI>
+
+    <!-- Classic unpackaged Windows desktop app. -->
+    <WindowsPackageType>None</WindowsPackageType>
+
+    <!-- Bundle the Windows App SDK runtime with Release publishes. -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+
+    <ApplicationIcon>Assets\SafeCCleaner.ico</ApplicationIcon>
+    <Product>Safe C: Cleaner</Product>
+    <Description>Safe disk C analyzer, guarded cleanup and developer storage tools for Windows.</Description>
+    <Company>Cactus Dex</Company>
+    <Authors>Cactus Dex</Authors>
+    <Version>0.5.2</Version>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Content Include="Assets\SafeCCleaner.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SafeCCleanerLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <ProjectReference Include="..\SafeCCleaner.Core\SafeCCleaner.Core.csproj" />
+    <ProjectReference Include="..\SafeCCleaner.Data\SafeCCleaner.Data.csproj" />
+    <ProjectReference Include="..\SafeCCleaner.Elevated\SafeCCleaner.Elevated.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="CopyElevatedHelperForLocalBuild" AfterTargets="Build">
+    <ItemGroup>
+      <_ElevatedHelperFiles Include="$(MSBuildProjectDirectory)\..\SafeCCleaner.Elevated\bin\$(Configuration)\net10.0-windows10.0.26100.0\SafeCCleaner.Elevated.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ElevatedHelperFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'@(_ElevatedHelperFiles)' != ''" />
+  </Target>
+</Project>

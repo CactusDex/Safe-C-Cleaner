@@ -1,0 +1,23 @@
+<Project>
+  <!--
+    Workaround for Windows App SDK issue #6720 (Aug 2026):
+    dotnet publish for unpackaged WinUI apps can generate the app PRI but omit
+    it from the publish output. Without the app PRI, XAML resources such as
+    ms-appx:///MainWindow.xaml cannot be resolved at runtime.
+
+    This target is additive and Exists()-guarded. It can be removed after the
+    upstream Windows App SDK/MSBuild publish path includes the app PRI itself.
+  -->
+  <Target Name="SafeCCleanerAddProjectPriToPublish"
+          BeforeTargets="ComputeResolvedFilesToPublishList"
+          DependsOnTargets="$(GenerateProjectPriFile)"
+          Condition="'$(UseWinUI)' == 'true' and '$(WindowsPackageType)' == 'None'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)"
+                             Condition="Exists('$(ProjectPriFullPath)')">
+        <RelativePath>$(ProjectPriFileName)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>
