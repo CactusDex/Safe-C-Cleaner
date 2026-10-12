@@ -1,3 +1,18 @@
+## v0.6.0 Candidate Fix 4 (not released)
+
+- Added fallback browser launch if Windows HTTPS association fails; first try default URL handler, then validated installed browser executable.
+- Preserve update-check status on browser errors, show launch diagnostic separately.
+- Link always targets official GitHub releases/latest. No registry changes.
+
+## 0.6.0 - Stability, Performance & GitHub Integration (candidate, Windows QA pending)
+
+- Fixed dynamic progress text layout constraints.
+- Reduced UI progress refresh frequency during scanning.
+- Added GitHub Release version checks to About and settings switches.
+- Added guarded local Git push and release scripts.
+- Fixed stale version in portable START HERE.txt and installer wait counter expansion.
+- Updated download URL.
+
 # 0.5.2 — Analyzer Filter & Icon Polish
 
 - Убрана подпись «Анализ диска C: и безопасная очистка» с главного экрана.
@@ -213,3 +228,9 @@
 ## 0.1.2
 
 - Исправления XAML parser и startup diagnostics.
+
+## 0.6.0 Candidate - Embedded Update Manager
+
+- Removed browser-dependent GitHub release action and obsolete BrowserLauncher with CS1626 compile error.
+- Added in-app installer download from validated latest stable GitHub Release, cancellation/progress, exact-size and SHA-256 integrity check, and safe Downloads output.
+- Download is only enabled for releases newer than the installed app. No automatic installer execution pending trusted code-signature verification.

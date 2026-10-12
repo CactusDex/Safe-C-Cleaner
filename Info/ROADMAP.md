@@ -1,3 +1,12 @@
+## 0.6.0 - Stability, Performance & GitHub Integration (candidate)
+
+- [x] Scan status width and line clamp.
+- [x] Throttled UI progress updates.
+- [x] GitHub Releases latest-version check and About card.
+- [x] Update preferences and 24h cache.
+- [x] GITHUB-PUSH.cmd and GITHUB-RELEASE.cmd.
+- [ ] Windows build, installer, performance benchmarks and regression test pending.
+
 # Roadmap
 
 ## 0.5.2 — Analyzer Filter & Icon Polish ✅

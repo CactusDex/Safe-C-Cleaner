@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 rem ============================================================
 rem Safe C: Cleaner - Installer Builder
@@ -342,6 +342,7 @@ echo %SETUP_EXE%
 goto FAIL
 
 :FAIL
+set "BUILD_FAILED=1"
 echo.
 echo ============================================================
 echo   BUILD FAILED
@@ -354,4 +355,5 @@ goto END
 echo.
 echo You can close this window when finished.
 echo.
-exit /b
+if defined BUILD_FAILED exit /b 1
+exit /b 0

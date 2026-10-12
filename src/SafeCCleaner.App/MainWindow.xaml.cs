@@ -32,6 +32,14 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
     private readonly StorageAnalyzerService _storageAnalyzerService = new();
     private readonly StorageAnalyzerCacheService _storageAnalyzerCacheService = new();
     private readonly AppSettingsService _settingsService = new();
+    private readonly GitHubUpdateService _updateService = new();
+    private string _updateStatusText = "Обновления ещё не проверялись.";
+    private string _updateNotesText = string.Empty;
+    private GitHubReleaseInfo? _availableUpdate;
+    private CancellationTokenSource? _updateDownloadCts;
+    private double _updateDownloadPercent;
+    private string _updateDownloadText = "";
+    private bool _updateCheckInProgress;
     private readonly AutostartService _autostartService = new();
     private readonly DeveloperStorageService _developerStorageService = new();
     private AppSettings _settings = new();
@@ -208,7 +216,13 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
     public bool CanStartScan => !IsScanning && !IsAnalyzerScanning;
     public string ScanButtonText => IsScanning ? "Сканирование…" : "Сканировать";
     public string RescanButtonText => IsScanning ? "Сканирование…" : "Пересканировать";
-    public string AboutVersionText => "0.5.2 (Analyzer Filter & Icon Polish)";
+    public string AboutVersionText => GitHubUpdateService.InstalledVersion.ToString(3) + " (Stability, Performance & GitHub Integration)";
+    public string UpdateStatusText { get => _updateStatusText; private set => Set(ref _updateStatusText, value); }
+    public string UpdateNotesText { get => _updateNotesText; private set => Set(ref _updateNotesText, value); }
+    public string UpdateDownloadText { get => _updateDownloadText; private set => Set(ref _updateDownloadText, value); }
+    public double UpdateDownloadPercent { get => _updateDownloadPercent; private set => Set(ref _updateDownloadPercent, value); }
+    public bool CanDownloadUpdate => _availableUpdate?.InstallerUrl is not null && _updateDownloadCts is null;
+    public bool IsUpdateDownloading => _updateDownloadCts is not null;
     public string AboutDeviceText => $"{RuntimeInformation.OSDescription.Trim()} · {RuntimeInformation.OSArchitecture}";
     public string AboutMachineName => Environment.MachineName;
     public string AboutHardwareText => $"{RuntimeInformation.ProcessArchitecture} · {Environment.ProcessorCount} логических процессоров";
@@ -297,6 +311,13 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
     public string AnalyzerStatusText { get => _analyzerStatusText; private set => Set(ref _analyzerStatusText, value); }
     public string AnalyzerSummaryText { get => _analyzerSummaryText; private set => Set(ref _analyzerSummaryText, value); }
     public string AnalyzerProgressText { get => _analyzerProgressText; private set => Set(ref _analyzerProgressText, value); }
+    private string _analyzerPercentDisplay = "0%";
+    private string _analyzerFilesDisplay = "0 файлов";
+    private string _analyzerEtaDisplay = "";
+    public string AnalyzerPercentDisplay { get => _analyzerPercentDisplay; private set => Set(ref _analyzerPercentDisplay, value); }
+    public string AnalyzerFilesDisplay { get => _analyzerFilesDisplay; private set => Set(ref _analyzerFilesDisplay, value); }
+    public string AnalyzerEtaDisplay { get => _analyzerEtaDisplay; private set => Set(ref _analyzerEtaDisplay, value); }
+
     public string AnalyzerLastRunText { get => _analyzerLastRunText; private set => Set(ref _analyzerLastRunText, value); }
     public string AnalyzerScanButtonText => IsAnalyzerScanning ? "Анализ…" : (_hasAnalyzerCache ? "Пересканировать C:" : "Анализировать C:");
 
@@ -644,6 +665,7 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
             await RefreshHistoryAsync();
             await LoadLastDiskSnapshotAsync();
             LoadLastAnalyzerResult();
+            _ = CheckUpdatesAsync(false);
 
             if (_settings.AutoScanOnStartup)
                 await ScanAllAsync();
@@ -670,7 +692,7 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
         AnalyzerPage.Visibility = tag == "analyzer" ? Visibility.Visible : Visibility.Collapsed;
         DeveloperPage.Visibility = tag == "developer" ? Visibility.Visible : Visibility.Collapsed;
         HistoryPage.Visibility = tag == "history" ? Visibility.Visible : Visibility.Collapsed;
-        SafetyPage.Visibility = tag == "safety" ? Visibility.Visible : Visibility.Collapsed;
+        SafetyPage.Visibility = Visibility.Collapsed; // Legacy information only; safety services remain active.
         SettingsPage.Visibility = tag == "settings" ? Visibility.Visible : Visibility.Collapsed;
         AboutPage.Visibility = tag == "about" ? Visibility.Visible : Visibility.Collapsed;
         _settings.LastSection = tag;
@@ -779,8 +801,11 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
             await RefreshDeepCleanAsync(token);
             UpdateScanProgress(30);
 
+            var lastDiskUiUpdate = Stopwatch.StartNew();
             var progress = new Progress<DiskScanProgress>(p =>
             {
+                if (lastDiskUiUpdate.ElapsedMilliseconds < 250 && p.Completed < p.Total) return;
+                lastDiskUiUpdate.Restart();
                 var diskPart = p.Total == 0 ? 0 : p.Completed * 70d / p.Total;
                 UpdateScanProgress(30 + diskPart, $"Сканирование: {p.DisplayName}");
             });
@@ -1569,6 +1594,8 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
         _applyingSettings = true;
         RootNavigation.IsPaneOpen = _settings.IsNavigationPaneOpen;
         AutoScanToggle.IsOn = _settings.AutoScanOnStartup;
+        AutoUpdateCheckToggle.IsOn = _settings.AutoCheckUpdates;
+        UpdateNotificationsToggle.IsOn = _settings.NotifyUpdates;
         AutostartToggle.IsOn = _settings.StartWithWindows;
         MinimizeToTrayToggle.IsOn = _settings.MinimizeToTrayOnClose;
         foreach (var item in ScannerCacheCombo.Items.OfType<ComboBoxItem>())
@@ -1582,7 +1609,7 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
         if (ScannerCacheCombo.SelectedItem is null)
             ScannerCacheCombo.SelectedIndex = 1;
 
-        SelectNavigationSection(_settings.LastSection, save: false);
+        SelectNavigationSection(_settings.LastSection == "safety" ? "overview" : _settings.LastSection, save: false);
         _applyingSettings = false;
     }
 
@@ -1599,6 +1626,84 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
             _settings.LastSection = tag;
             _settingsService.Save(_settings);
         }
+    }
+
+    private void UpdateSettings_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_applyingSettings) return;
+        _settings.AutoCheckUpdates = AutoUpdateCheckToggle.IsOn;
+        _settings.NotifyUpdates = UpdateNotificationsToggle.IsOn;
+        _settingsService.Save(_settings);
+    }
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) => await CheckUpdatesAsync(true);
+
+    private async void DownloadUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (_availableUpdate is not { } release || _updateDownloadCts is not null) return;
+        _updateDownloadCts = new CancellationTokenSource();
+        OnPropertyChanged(nameof(CanDownloadUpdate));
+        OnPropertyChanged(nameof(IsUpdateDownloading));
+        UpdateDownloadPercent = 0;
+        UpdateDownloadText = "Загрузка установщика…";
+        try
+        {
+            var progress = new Progress<double>(value => UpdateDownloadPercent = value);
+            var path = await _updateService.DownloadInstallerAsync(release, progress, _updateDownloadCts.Token);
+            UpdateDownloadText = "Загружено и проверено SHA-256. Файл сохранён в Загрузках: " + Path.GetFileName(path) + ". Запустите его вручную после проверки издателя.";
+        }
+        catch (OperationCanceledException) { UpdateDownloadText = "Загрузка отменена."; }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("Update download failed.", ex);
+            UpdateDownloadText = "Не удалось скачать установщик: " + ex.Message;
+        }
+        finally
+        {
+            _updateDownloadCts.Dispose();
+            _updateDownloadCts = null;
+            OnPropertyChanged(nameof(CanDownloadUpdate));
+            OnPropertyChanged(nameof(IsUpdateDownloading));
+        }
+    }
+
+    private void CancelUpdateDownload_Click(object sender, RoutedEventArgs e) => _updateDownloadCts?.Cancel();
+
+    private async Task CheckUpdatesAsync(bool manual)
+    {
+        if (_updateCheckInProgress) return;
+        if (!manual && (!_settings.AutoCheckUpdates ||
+            (_settings.LastUpdateCheckUtc is { } checkedAt &&
+             DateTimeOffset.UtcNow - checkedAt < TimeSpan.FromHours(24)))) return;
+        _updateCheckInProgress = true;
+        UpdateStatusText = "Проверка GitHub Releases…";
+        try
+        {
+            var release = await _updateService.GetLatestAsync();
+            _settings.LastUpdateCheckUtc = DateTimeOffset.UtcNow;
+            _settingsService.Save(_settings);
+            _availableUpdate = null;
+            if (release.Version > GitHubUpdateService.InstalledVersion)
+            {
+                _availableUpdate = release.InstallerUrl is not null ? release : null;
+                UpdateStatusText = $"Доступна версия {release.Tag}. Установлена {GitHubUpdateService.InstalledVersion.ToString(3)}." + (release.InstallerUrl is null ? " Проверенная загрузка установщика недоступна." : "");
+                UpdateNotesText = release.Notes.Length > 1600 ? release.Notes[..1600] + "…" : release.Notes;
+                if (_settings.NotifyUpdates && !manual) StatusText = $"Доступно обновление Safe C: Cleaner {release.Tag}.";
+            }
+            else
+            {
+                UpdateStatusText = "Установлена актуальная версия Safe C: Cleaner.";
+                UpdateNotesText = string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("GitHub update check failed.", ex);
+            UpdateStatusText = "Не удалось проверить обновления. Повторите попытку позднее.";
+            UpdateNotesText = string.Empty;
+            _availableUpdate = null;
+        }
+        finally { _updateCheckInProgress = false; OnPropertyChanged(nameof(CanDownloadUpdate)); }
     }
 
     private void AutoScanToggle_Toggled(object sender, RoutedEventArgs e)
@@ -2012,12 +2117,18 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
             IsAnalyzerScanning = true;
             AnalyzerProgressPercent = 0;
             AnalyzerProgressText = "Подготовка…";
+            AnalyzerPercentDisplay = "0%";
+            AnalyzerFilesDisplay = "0 файлов";
+            AnalyzerEtaDisplay = "Подготовка…";
             AnalyzerStatusText = "Индексирую диск. Reparse points и исключения Storage Scanner пропускаются.";
             AnalyzerSummaryText = "Анализ C: выполняется…";
             _analyzerStartedAt = DateTimeOffset.Now;
 
+            var lastAnalyzerUiUpdate = Stopwatch.StartNew();
             var progress = new Progress<StorageAnalyzerProgress>(p =>
             {
+                if (lastAnalyzerUiUpdate.ElapsedMilliseconds < 250 && p.ApproximatePercent < 100) return;
+                lastAnalyzerUiUpdate.Restart();
                 AnalyzerProgressPercent = Math.Clamp(p.ApproximatePercent, 0, 100);
                 var elapsed = DateTimeOffset.Now - _analyzerStartedAt;
                 var etaText = string.Empty;
@@ -2027,8 +2138,12 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
                     etaText = " · " + FormatEta(TimeSpan.FromSeconds(Math.Max(0, total - elapsed.TotalSeconds)));
                 }
                 AnalyzerProgressText = $"{p.ApproximatePercent:0}% · {p.FilesScanned:N0} файлов{etaText}";
-                var current = p.CurrentPath.Length > 110 ? "…" + p.CurrentPath[^107..] : p.CurrentPath;
-                AnalyzerStatusText = $"Сканирование: {current}" + (p.AccessLimitedCount > 0 ? $" · ограничений доступа: {p.AccessLimitedCount:N0}" : string.Empty);
+                AnalyzerPercentDisplay = $"{p.ApproximatePercent:0}%";
+                AnalyzerFilesDisplay = $"{p.FilesScanned:N0} файлов";
+                AnalyzerEtaDisplay = string.IsNullOrEmpty(etaText) ? "Расчёт времени…" : etaText.Trim(' ', '·');
+                AnalyzerStatusText = p.AccessLimitedCount > 0
+                    ? $"Анализ файловой системы · ограничений доступа: {p.AccessLimitedCount:N0}"
+                    : "Анализ файловой системы выполняется…";
             });
 
             var result = await _storageAnalyzerService.AnalyzeAsync(root, _storageExcludedPaths, progress, token);
@@ -2043,6 +2158,9 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
 
             AnalyzerProgressPercent = 100;
             AnalyzerProgressText = $"Готово · {FormatDuration(result.Duration)}";
+            AnalyzerPercentDisplay = "100%";
+            AnalyzerFilesDisplay = $"{result.FileCount:N0} файлов";
+            AnalyzerEtaDisplay = $"Время: {FormatDuration(result.Duration)}";
             AnalyzerLastRunText = $"Последний анализ: {capturedAt.LocalDateTime:dd.MM.yyyy HH:mm} · сохранено";
             AnalyzerSummaryText = $"Просканировано {ByteSizeFormatter.Format(result.ScannedBytes)} · {result.FileCount:N0} файлов · {result.DirectoryCount:N0} папок";
             AnalyzerStatusText = result.AccessLimitedCount > 0
@@ -2060,6 +2178,7 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
                 ? "Анализ отменён. На экране оставлены предыдущие сохранённые результаты."
                 : "Анализ отменён.";
             AnalyzerProgressText = "Отменено";
+            AnalyzerEtaDisplay = "Отменено";
         }
         catch (Exception ex)
         {
@@ -2071,6 +2190,7 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
             }
             AnalyzerStatusText = "Ошибка анализа: " + ex.Message + (_hasAnalyzerCache ? " · показаны предыдущие результаты." : string.Empty);
             AnalyzerProgressText = "Ошибка";
+            AnalyzerEtaDisplay = "Ошибка";
         }
         finally
         {

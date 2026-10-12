@@ -146,7 +146,7 @@ Run: SafeCCleaner.exe
 This is a self-contained Windows build. The target PC does not need Visual Studio or a separately installed .NET runtime.
 Keep SafeCCleaner.Elevated.exe in the same folder: it is used only for operations that require UAC elevation.
 
-Version: 0.4.1.3 Branding Patch
+Version: $(([xml](Get-Content -LiteralPath (Join-Path $Root "src\SafeCCleaner.App\SafeCCleaner.App.csproj") -Raw)).Project.PropertyGroup.Version)
 Runtime: $Runtime
 "@ | Set-Content -Encoding UTF8 (Join-Path $AppOut "START HERE.txt")
 

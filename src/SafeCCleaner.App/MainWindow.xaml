@@ -40,9 +40,6 @@
             <NavigationViewItem Content="История очисток" Tag="history">
                 <NavigationViewItem.Icon><FontIcon Glyph="&#xE81C;" /></NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Безопасность" Tag="safety">
-                <NavigationViewItem.Icon><FontIcon Glyph="&#xE72E;" /></NavigationViewItem.Icon>
-            </NavigationViewItem>
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>
@@ -691,14 +688,28 @@
 
                     <Border Padding="16" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                         <StackPanel Spacing="8">
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{Binding AnalyzerSummaryText}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding AnalyzerLastRunText}" Opacity="0.56" FontSize="11" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding AnalyzerStatusText}" Opacity="0.65" FontSize="12" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding AnalyzerProgressText}" Opacity="0.72" VerticalAlignment="Center"/>
+                            <!-- Fixed three-line summary and bounded progress: changing paths/ETA must never remeasure the card. -->
+                            <Grid ColumnSpacing="12" Height="68">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="218" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" MinWidth="0" RowSpacing="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="26" />
+                                        <RowDefinition Height="18" />
+                                        <RowDefinition Height="18" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="{Binding AnalyzerSummaryText}" FontSize="18" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding AnalyzerSummaryText}" />
+                                    <TextBlock Grid.Row="1" Text="{Binding AnalyzerLastRunText}" Opacity="0.56" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding AnalyzerLastRunText}" />
+                                    <TextBlock Grid.Row="2" Text="{Binding AnalyzerStatusText}" Opacity="0.65" FontSize="12" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding AnalyzerStatusText}" />
+                                </Grid>
+                                <Grid Grid.Column="1" Width="218" RowSpacing="2" HorizontalAlignment="Right">
+                                    <Grid.RowDefinitions><RowDefinition Height="26"/><RowDefinition Height="18"/><RowDefinition Height="18"/></Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="{Binding AnalyzerPercentDisplay}" HorizontalAlignment="Right" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="1" Text="{Binding AnalyzerFilesDisplay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.72"/>
+                                    <TextBlock Grid.Row="2" Text="{Binding AnalyzerEtaDisplay}" HorizontalAlignment="Right" FontSize="12" Opacity="0.72" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding AnalyzerProgressText}"/>
+                                </Grid>
                             </Grid>
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding AnalyzerProgressPercent}" Height="8"
                                          Visibility="{Binding AnalyzerProgressVisibility}"/>
@@ -969,6 +980,24 @@
                     </Border>
 
                     <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Проверка обновлений" FontSize="18" FontWeight="SemiBold"/>
+                            <ToggleSwitch x:Name="AutoUpdateCheckToggle" Header="Автоматически проверять раз в 24 часа" Toggled="UpdateSettings_Toggled"/>
+                            <ToggleSwitch x:Name="UpdateNotificationsToggle" Header="Уведомлять о новой версии" Toggled="UpdateSettings_Toggled"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Сервис" FontSize="18" FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Открыть папку логов" Click="OpenLogsFolder_Click"/>
+                                <Button Content="Скопировать сведения" Click="CopyDiagnostics_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="18" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                         <StackPanel Spacing="8">
                             <TextBlock Text="Интерфейс" FontSize="18" FontWeight="SemiBold"/>
                             <TextBlock Text="Размер и положение окна, состояние боковой панели и последний раздел сохраняются при закрытии." Opacity="0.65" TextWrapping="Wrap"/>
@@ -987,7 +1016,7 @@
                     <Border Padding="0" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 
@@ -1008,20 +1037,15 @@
                             </Border>
                             <Border Grid.Row="3" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
                                 <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Архитектура / CPU"/><TextBlock Grid.Column="1" Text="{Binding AboutHardwareText}"/>
+                                    <TextBlock Text=".NET"/><TextBlock Grid.Column="1" Text="{Binding AboutDotNetText}"/>
                                 </Grid>
                             </Border>
                             <Border Grid.Row="4" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
                                 <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text=".NET"/><TextBlock Grid.Column="1" Text="{Binding AboutDotNetText}"/>
-                                </Grid>
-                            </Border>
-                            <Border Grid.Row="5" Grid.ColumnSpan="2" Padding="14,11" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Windows App SDK"/><TextBlock Grid.Column="1" Text="{Binding AboutWindowsAppSdkText}"/>
                                 </Grid>
                             </Border>
-                            <Border Grid.Row="6" Grid.ColumnSpan="2" Padding="14,11">
+                            <Border Grid.Row="5" Grid.ColumnSpan="2" Padding="14,11">
                                 <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Автор"/><TextBlock Grid.Column="1" Text="Cactus Dex" FontWeight="SemiBold"/>
                                 </Grid>
@@ -1030,13 +1054,17 @@
                     </Border>
 
                     <Border Padding="24" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                        <StackPanel HorizontalAlignment="Center" Spacing="10">
-                            <Image Source="Assets/SafeCCleanerLogo.png" Width="104" Height="104" Stretch="Uniform" Margin="0,0,0,2"/>
-                            <TextBlock Text="Safe C: Cleaner" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Безопасный анализ и очистка системного диска Windows." Opacity="0.68" HorizontalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <Button Content="Открыть папку логов" Click="OpenLogsFolder_Click"/>
-                                <Button Content="Скопировать сведения" Click="CopyDiagnostics_Click"/>
+                        <StackPanel Spacing="14" HorizontalAlignment="Stretch">
+                            <FontIcon Glyph="&#xE777;" FontSize="40" HorizontalAlignment="Center" Foreground="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
+                            <TextBlock Text="Обновления Safe C: Cleaner" FontSize="19" FontWeight="SemiBold" TextAlignment="Center"/>
+                            <TextBlock Text="{Binding UpdateStatusText}" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8"/>
+                            <TextBlock Text="{Binding UpdateNotesText}" TextWrapping="Wrap" MaxHeight="100" MaxLines="5" TextTrimming="CharacterEllipsis" TextAlignment="Center" Opacity="0.72"/>
+                            <ProgressBar Minimum="0" Maximum="100" Height="6" Value="{Binding UpdateDownloadPercent}"/>
+                            <TextBlock Text="{Binding UpdateDownloadText}" TextWrapping="Wrap" TextAlignment="Center" MaxLines="3"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,12,0,0">
+                                <Button Content="Проверить обновления" Click="CheckUpdates_Click"/>
+                                <Button Content="Скачать установщик" Click="DownloadUpdate_Click" IsEnabled="{Binding CanDownloadUpdate}"/>
+                                <Button Content="Отмена загрузки" Click="CancelUpdateDownload_Click" IsEnabled="{Binding IsUpdateDownloading}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -1047,12 +1075,12 @@
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" MinWidth="260" />
-                        <ColumnDefinition Width="1.25*" MinWidth="220" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="1.25*" />
                         <ColumnDefinition Width="132" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxLines="1" VerticalAlignment="Center" ToolTipService.ToolTip="{Binding StatusText}" />
                     <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding ScanProgressPercent}"
                                  Visibility="{Binding ScanProgressVisibility}" Height="8" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding ScanEtaText}" Visibility="{Binding ScanProgressVisibility}"

@@ -5,6 +5,9 @@ namespace SafeCCleaner.App.Services;
 internal sealed class AppSettings
 {
     public bool AutoScanOnStartup { get; set; } = true;
+    public bool AutoCheckUpdates { get; set; } = true;
+    public bool NotifyUpdates { get; set; } = true;
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
     public bool StartWithWindows { get; set; } = false;
     public bool MinimizeToTrayOnClose { get; set; } = true;
     public int ScannerCacheMinutes { get; set; } = 15;
